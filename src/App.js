@@ -1,24 +1,37 @@
-import logo from './logo.svg';
+//import logo from './logo.svg';
 import './App.css';
+import {BrowserRouter as Router, Route, Link} from "react-router-dom";
+import FeedForm from './components/FeedForm';
+import EventsForm from './components/EventsForm';
+import Events from './components/Events';
+import TeamForm from './components/TeamForm';
+import Navbar from './components/Navbar';
+import MatchForm from './components/MatchForm';
+import Matches from './components/Matches';
+import ScoringPage from './components/ScoringPage';
+import CricScorer from './components/CrickScorer';
+
 
 function App() {
   return (
+    <Router>
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark" >
+         <Navbar />
+          </nav>
+          
+            <Route exact path="/feedform" component={FeedForm} />
+            <Route exact path="/eventform" component={EventsForm} />
+            <Route exact path="/teamform" component={TeamForm} />
+            <Route exact path="/events" component={Events} />
+            <Route path="/addmatches/:eventname" component={MatchForm} />
+            <Route path="/showmatches/:eventname" component={Matches} />
+            <Route path="/cricscorer/:eventname/:matchname" component={CricScorer} />
+            <Route exact path="/scoringpage" component={ScoringPage} />
+           
+        </div>
+    
+    </Router>
   );
 }
 
