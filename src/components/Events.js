@@ -42,12 +42,12 @@ const buttonClick = prop => {
             return(
               <div>
                 <Card style={{ width: '18rem', display: 'inline-block' }}>
-                <CardImg style={{width:'18rem' , height: '8rem'}} variant="top" src={item._delegate._document.data.partialValue.mapValue.fields.cover_image.stringValue}/>
+                <CardImg style={{width:'18rem' , height: '8rem'}} variant="top" src={item.data().cover_image}/>
                 <CardBody>
-                    <CardTitle>{item._delegate._document.data.partialValue.mapValue.fields.name.stringValue}</CardTitle>
-                    <CardText>{item._delegate._document.data.partialValue.mapValue.fields.start_date.stringValue}</CardText>
-                    <Button variant="primary" onClick={buttonClick.bind(this, item._delegate._document.data.partialValue.mapValue.fields.name.stringValue)} >Add Matches  </Button>
-                    <Button variant="primary" onClick={showmatchesbutton.bind(this, item._delegate._document.data.partialValue.mapValue.fields.name.stringValue)} >Show details  </Button>
+                    <CardTitle>{item.data().name}</CardTitle>
+                    <CardText>{item.data().start_date}</CardText>
+                    <Button variant="primary" onClick={buttonClick.bind(this, item.data().name)} >Add Matches  </Button>
+                    <Button variant="primary" onClick={showmatchesbutton.bind(this, item.data().name)} >Show details  </Button>
                 </CardBody>
                 </Card>                         
               </div>

@@ -62,22 +62,24 @@ return(
         </div>
         
         <div className= "form-group input-group col-md-6">
-            <label> Select Team A:      </label>
+            <label> Team A:      </label>
             <select placeholder="Team A Name" name="team_A" onChange={handleInputChange} value={values.team_A}>
+            <option value="" disabled selected>Select Team A</option>
             {Teamnames.map((item)=>{
                 return(
-                    <option value={item._delegate._document.data.partialValue.mapValue.fields.team_name.stringValue}>{item._delegate._document.data.partialValue.mapValue.fields.team_name.stringValue}</option> 
+                    <option value={item.data().team_name}>{item.data().team_name}</option> 
                     )})
             }
             </select>
         </div>  
         <br />
         <div className= "form-group input-group col-md-6">
-            <label> Select Team B:      </label>
+            <label> Team B:      </label>
             <select placeholder="Team B Name" name="team_B" onChange={handleInputChange} value={values.team_B}>
+            <option value="" disabled selected>Select Team B</option>
             {Teamnames.map((item)=>{
                 return(
-                    <option value={item._delegate._document.data.partialValue.mapValue.fields.team_name.stringValue}>{item._delegate._document.data.partialValue.mapValue.fields.team_name.stringValue}</option> 
+                    <option value={item.data().team_name}>{item.data().team_name}</option> 
                     )})
             }
             </select>

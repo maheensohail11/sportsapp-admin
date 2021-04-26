@@ -35,7 +35,7 @@ const [Matches, setMatches]= useState([]);
     }
 
     function handleOnSubmit(prop) {
-    history.push(`/cricscorer/${values.eventname}/${values.match}`);
+    history.push(`/tosspage/${values.eventname}/${values.match}`);
         
     }
 
@@ -51,22 +51,24 @@ const [Matches, setMatches]= useState([]);
         <form autoComplete="off" >
 
         <div className= "form-group input-group">
-            <label> Select Event:      </label>
+            <label>  Event:      </label>
             <select name="eventname" onChange={handleEventInputChange} value={values.eventname}>
+            <option value="" disabled selected>Select Event</option>
             {Events.map((item)=>{
                 return(
-                    <option value={item._delegate._document.data.partialValue.mapValue.fields.name.stringValue}>{item._delegate._document.data.partialValue.mapValue.fields.name.stringValue}</option> 
+                    <option value={item.data().name}>{item.data().name}</option> 
                     )})
             }
             </select>
         </div> 
             <br />
         <div className= "form-group input-group ">
-            <label> Select Match:      </label>
+            <label> Match: </label>
             <select name="match" onChange={handleMatchInputChange} value={values.match}>
+            <option value="" disabled selected>Select Match</option>
             {Matches.map((item)=>{
                 return(
-                    <option value={item._delegate._document.data.partialValue.mapValue.fields.name.stringValue}>{item._delegate._document.data.partialValue.mapValue.fields.name.stringValue}</option> 
+                    <option value={item.data().name}>{item.data().name}</option> 
                     )})
             }
             </select>

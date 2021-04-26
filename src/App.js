@@ -9,7 +9,8 @@ import Navbar from './components/Navbar';
 import MatchForm from './components/MatchForm';
 import Matches from './components/Matches';
 import ScoringPage from './components/ScoringPage';
-import CricScorer from './components/CrickScorer';
+import CricScorer from './components/CricScorer';
+import Toss from './components/Toss';
 
 
 function App() {
@@ -26,7 +27,8 @@ function App() {
             <Route exact path="/events" component={Events} />
             <Route path="/addmatches/:eventname" component={MatchForm} />
             <Route path="/showmatches/:eventname" component={Matches} />
-            <Route path="/cricscorer/:eventname/:matchname" component={CricScorer} />
+            <Route path="/tosspage/:eventname/:matchname" component={Toss} />
+            <Route path="/cricscorer/:eventname/:matchname/:team_A/:team_B/:tosswinteam/:choice" component={CricScorer} />
             <Route exact path="/scoringpage" component={ScoringPage} />
            
         </div>
