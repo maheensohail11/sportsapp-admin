@@ -42,6 +42,11 @@ class Landing extends Component {
             </a>
                 </li>
                 <li className="nav-item">
+                <a href="/schedform" className="nav-link">
+                        Add a Practice Schedule
+            </a>
+                </li>
+                <li className="nav-item">
                 <a href="/scoringpage" className="nav-link">
                         Scoring
             </a>

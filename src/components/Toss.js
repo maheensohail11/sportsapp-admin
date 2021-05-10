@@ -25,6 +25,7 @@ function Toss (props) {
             ...values,
             [name]: value
         })
+       
     }      
 
     const beginMatch= (props) => {

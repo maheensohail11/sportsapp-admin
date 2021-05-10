@@ -11,6 +11,7 @@ import Matches from './components/Matches';
 import ScoringPage from './components/ScoringPage';
 import CricScorer from './components/CricScorer';
 import Toss from './components/Toss';
+import GameScheduleForm from './components/GameScheduleForm';
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           </nav>
           
             <Route exact path="/feedform" component={FeedForm} />
+            <Route exact path="/schedform" component={GameScheduleForm} />
             <Route exact path="/eventform" component={EventsForm} />
             <Route exact path="/teamform" component={TeamForm} />
             <Route exact path="/events" component={Events} />
