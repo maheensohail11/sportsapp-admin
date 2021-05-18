@@ -32,17 +32,7 @@ const [Matches, setMatches]= useState([]);
             ...values,
             [name]: value
         })
-        firebaseDb.firestore().collection("cric_players").doc("7878").get().then((doc)=> {
-            if (doc.exists){
-                // Convert to City object
-                var city = doc.data();
-                // Use a City instance method
-                console.log("dtata");
-                console.log(city);
-              } else {
-                console.log("No such document!");
-              }
-         })
+       
     }
 
     function handleOnSubmit(prop) {

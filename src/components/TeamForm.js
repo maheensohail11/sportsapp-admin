@@ -33,11 +33,13 @@ handlePlayerSave = prop => {
    
     console.log("PL_ID: ", prop.Pl_id )
     const playersRef = firebaseDb.firestore().collection('cric_players')
-    playersRef.doc(prop.Pl_id).get().then((docSnapshot) => {
+    playersRef.doc(prop.Pl_name).get().then((docSnapshot) => {
         if (docSnapshot.exists) {
-            alert("Player with this id exists already. Try changing id");
+            alert("Player with this username exists already. Try a different username");
           } else {
-            playersRef.doc(prop.Pl_id).set(prop, err => {
+            playersRef.doc(prop.Pl_name).set({Pl_id: prop.Pl_id, Pl_name: prop.Pl_name, 
+                fours: 0, sixes: 0, hundreds:0, fiftys:0, innings_played: 0,
+                 matches_played:0, total_runs:0, highest_runs:0 }, err => {
                 if(err)
                 console.log(err)
             }) 

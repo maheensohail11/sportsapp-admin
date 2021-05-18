@@ -73,9 +73,34 @@ function CricScorer (props) {
         setfieldingteamdata( doc.data());
     })
     
+    //battingteamdata.Player_2_id,battingteamdata.Player_3_id,battingteamdata.Player_4_id,battingteamdata.Player_5_id );
+
+    
     matchref.update({first_innings_batting_team: batting_team, second_innings_batting_team: fielding_team, total_runs_1st_innings: 0, first_i_overs: 0.0, first_i_wickets: 0});
     },[])
 
+    
+
+    const EndInnings = () =>{
+      var idarray= [battingteamdata.Player_1_name,battingteamdata.Player_2_name,battingteamdata.Player_3_name,battingteamdata.Player_4_name,battingteamdata.Player_5_name];
+      idarray.map((item, index)=>{
+        return( console.log("item",item))
+      })
+      idarray.forEach((item, index)=>{
+        
+        firebaseDb.firestore().collection("cric_players").doc(item).get().then((doc)=>{
+         var pl_data= doc.data();
+         //return( console.log("pldata",pl_data))
+         firebaseDb.firestore().collection("cric_players").doc(item).update({matches_played: pl_data.matches_played+1})
+         matchref.collection("1st_innings_batsmen").doc(item).get().then((newdoc)=>{
+           if(newdoc.exists){
+             var newdata= newdoc.data();
+            firebaseDb.firestore().collection("cric_players").doc(item).update({pl_runs: pl_data.pl_runs + newdata.runs, fours: pl_data.fours + newdata.fours, sixes : pl_data.sixes + newdata.sixes, innings_played: pl_data.innings_played +1});
+           }
+            })
+      })
+    })
+  }
     const OnRuns= async e =>{
       if(((current_overs * 10)%10)==5)
       current_overs+=0.5;
@@ -166,6 +191,7 @@ function CricScorer (props) {
       //alert("out values: " + outvalues.player_out_name + " values: " + values.b_onstrike_name);
        if(outvalues.player_out_name === values.b_onstrike_name){
         matchref.collection("active_batsmen").doc(values.b_onstrike_id).delete();
+         
            await setValues({
                ...values,
                b_onstrike_id: outvalues.new_player_id,
@@ -349,6 +375,7 @@ function CricScorer (props) {
          </Popup>
     
           <button onClick= {nextOver}>Next Over</button>
+          <button onClick= {EndInnings}>End 1st Innings</button>
         </div>
 
       </>
