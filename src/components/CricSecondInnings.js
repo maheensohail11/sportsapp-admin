@@ -15,14 +15,14 @@ var other_runs=0;
 var other_fours=0;
 var other_sixes=0;
 var runs_per_over = 0;
-var total_runs_1st_innings = 0;
+var total_runs_2nd_innings = 0;
 var current_over= []; 
 var extra_runs= 0;
 var wickets=0;
 var current_overs=0.0;
 var bowler_runs=0;
 var bowler_wickets=0;
-
+var target;
 
 function useAsyncState(initialValue) {
 
@@ -36,13 +36,13 @@ function useAsyncState(initialValue) {
   }
 
 
-function CricScorer (props) {
+function CricSecondInnings (props) {
   var history= useHistory();
     const initialvalues= {
         b_onstrike_id: "",
         b_onstrike_name: "",
         b_other_id: "",
-            bowler_id: "",
+        bowler_id: "",
         bowler_name: ""
         }
 
@@ -58,18 +58,9 @@ function CricScorer (props) {
     var [battingteamdata, setbattingteamdata]= useState({});
     var [fieldingteamdata, setfieldingteamdata]= useState({});
     const matchref= firebaseDb.firestore().collection("events").doc(props.match.params.eventname).collection("ongoing_matches").doc(props.match.params.matchname);
-    var deciding_team;
-    var other_team;
-    if(props.match.params.team_A === props.match.params.tosswinteam){
-        deciding_team= props.match.params.team_A
-        other_team= props.match.params.team_B
-    }
-    else{
-        deciding_team= props.match.params.team_B
-        other_team= props.match.params.team_A
-    } 
-    var batting_team= (props.match.params.choice === "bat" )? deciding_team : other_team;
-    var fielding_team= (batting_team === deciding_team)? other_team : deciding_team;
+   
+    var batting_team= props.match.params.fieldingteam;
+    var fielding_team= props.match.params.battingteam;
     
     useEffect(()=>{
     firebaseDb.firestore().collection("teams").doc(batting_team).get().then((doc) => {
@@ -83,7 +74,7 @@ function CricScorer (props) {
     //battingteamdata.Player_2_id,battingteamdata.Player_3_id,battingteamdata.Player_4_id,battingteamdata.Player_5_id );
 
     
-    matchref.update({first_innings_batting_team: batting_team, second_innings_batting_team: fielding_team, total_runs_1st_innings: 0, first_i_overs: 0.0, first_i_wickets: 0});
+    matchref.update({second_innings_batting_team: batting_team, total_runs_2nd_innings: 0, second_i_overs: 0.0, second_i_wickets: 0});
     },[])
 
     
@@ -99,7 +90,7 @@ function CricScorer (props) {
          var pl_data= doc.data();
          console.log("pldata",pl_data);
          firebaseDb.firestore().collection("cric_players").doc(item).update({matches_played: pl_data.matches_played+1})
-         matchref.collection("1st_innings_batsmen").doc(item).get().then((newdoc)=>{
+         matchref.collection("2nd_innings_batsmen").doc(item).get().then((newdoc)=>{
            if(newdoc.exists){
              var newdata= newdoc.data();
             firebaseDb.firestore().collection("cric_players").doc(item).update({pl_runs: pl_data.pl_runs + newdata.runs, fours: pl_data.fours + newdata.fours, sixes : pl_data.sixes + newdata.sixes, innings_played: pl_data.innings_played +1});
@@ -107,21 +98,8 @@ function CricScorer (props) {
             })
       })
     })
-    confirmAlert({
-      title: 'Confirm to submit',
-      message: 'Are you sure you want to end this innings?',
-      buttons: [
-        {
-          label: 'Cancel',
-          onClick: () => {return null;}
-        },
-        {
-          label: 'Yes',
-          onClick: () => {history.push(`/secondinnings/${props.match.params.eventname}/${props.match.params.matchname}/${batting_team}/${fielding_team}`);}
-        }
-      ]
-    });
-  }
+    
+   }
     const OnRuns= async e =>{
       console.log(values);
       if(((current_overs * 10)%10)==5)
@@ -131,8 +109,8 @@ function CricScorer (props) {
         await setOv(current_over).then(console.log("in SetOv"));
         onstrike_runs= onstrike_runs + parseInt(e.target.value, 10);
         if((parseInt(e.target.value, 10) == 1) || (parseInt(e.target.value, 10) == 3) || (parseInt(e.target.value, 10) == 5) ){
-            matchref.collection("1st_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
-            matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
+            matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
+            matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs});
             var temp_id= values.b_onstrike_id;
             var temp_name= values.b_onstrike_name;
             var temp_runs= onstrike_runs; 
@@ -155,33 +133,33 @@ function CricScorer (props) {
         else if(parseInt(e.target.value, 10)== 4){
           await setValues({...values}).then(console.log("values set in onfour"));
           onstrike_fours= onstrike_fours + 1;
-            matchref.collection("1st_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs, fours: onstrike_fours});
-            matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs,  fours: onstrike_fours});
+            matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs, fours: onstrike_fours});
+            matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs,  fours: onstrike_fours});
         }
         else if(parseInt(e.target.value, 10)== 6){
           await setValues({...values}).then(console.log("values set in onsix"));
           onstrike_sixes= onstrike_sixes + 1;
-          matchref.collection("1st_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs, sixes: onstrike_sixes});
-          matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs,  sixes: onstrike_sixes});
+          matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs, sixes: onstrike_sixes});
+          matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs,  sixes: onstrike_sixes});
       }
         else{
           await setValues({...values}).then(console.log("values set in ontwo"));
-            matchref.collection("1st_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
-            matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
+            matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
+            matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs});
         }
         runs_per_over += parseInt(e.target.value, 10);
         bowler_runs += parseInt(e.target.value, 10);
-        total_runs_1st_innings += parseInt(e.target.value, 10);
-        matchref.update({runs_this_over: runs_per_over, total_runs_1st_innings: total_runs_1st_innings, first_i_overs: current_overs });
-        matchref.collection("1st_innings_bowlers").doc(values.bowler_id).update({runs_given: bowler_runs});
-        matchref.collection("active_bowlers").doc(values.bowler_id).update({runs_given: bowler_runs});
+        total_runs_2nd_innings += parseInt(e.target.value, 10);
+        matchref.update({runs_this_over: runs_per_over, total_runs_2nd_innings: total_runs_2nd_innings, second_i_overs: current_overs });
+        matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).update({runs_given: bowler_runs});
+        matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).update({runs_given: bowler_runs});
         console.log(current_over);
 
         //return current_over;
        }
 
     const nextOver= async () => {
-      matchref.collection("active_bowlers").doc(values.bowler_id).delete();
+      matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).delete();
         //player exchange
         var temp_id= values.b_onstrike_id;
         var temp_name= values.b_onstrike_name; 
@@ -214,11 +192,11 @@ function CricScorer (props) {
 
     const handleOut= async () => {
       bowler_wickets += 1;
-      matchref.collection("1st_innings_bowlers").doc(values.bowler_id).update({wickets: bowler_wickets});
-      matchref.collection("active_bowlers").doc(values.bowler_id).update({wickets: bowler_wickets});
+      matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).update({wickets: bowler_wickets});
+      matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).update({wickets: bowler_wickets});
       //alert("out values: " + outvalues.player_out_name + " values: " + values.b_onstrike_name);
        if(outvalues.player_out_name === values.b_onstrike_name){
-        matchref.collection("active_batsmen").doc(values.b_onstrike_id).delete();
+        matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).delete();
          
            await setValues({
                ...values,
@@ -230,7 +208,7 @@ function CricScorer (props) {
            onstrike_sixes=0;
          }
        else{
-        matchref.collection("active_batsmen").doc(values.b_other_id).delete();
+        matchref.collection("active_batsmen_sec_i").doc(values.b_other_id).delete();
            await setValues({
                ...values,
                b_other_id: outvalues.new_player_id,
@@ -241,31 +219,31 @@ function CricScorer (props) {
            other_sixes=0;
     }
       wickets += 1; 
-           matchref.collection("1st_innings_batsmen").doc(outvalues.new_player_id).set({name: outvalues.new_player_name, runs: 0, fours: 0, sixes: 0 });
-           matchref.collection("active_batsmen").doc(outvalues.new_player_id).set({name: outvalues.new_player_name, runs: 0, fours: 0, sixes: 0 });
-           matchref.update({first_i_wickets: wickets}); 
+           matchref.collection("2nd_innings_batsmen").doc(outvalues.new_player_id).set({name: outvalues.new_player_name, runs: 0, fours: 0, sixes: 0 });
+           matchref.collection("active_batsmen_sec_i").doc(outvalues.new_player_id).set({name: outvalues.new_player_name, runs: 0, fours: 0, sixes: 0 });
+           matchref.update({second_i_wickets: wickets}); 
            console.log(JSON.stringify(values));
      }
 
      const SavePlayers = () => {
-       matchref.collection("1st_innings_batsmen").doc(values.b_onstrike_id).set({name: values.b_onstrike_name, runs: 0, sixes: 0, fours: 0 });
-       matchref.collection("active_batsmen").doc(values.b_onstrike_id).set({name: values.b_onstrike_name, runs: 0, sixes: 0, fours: 0 });
-       matchref.collection("1st_innings_batsmen").doc(values.b_other_id).set({name: values.b_other_name, runs: 0 , sixes: 0, fours: 0 });
-       matchref.collection("active_batsmen").doc(values.b_other_id).set({name: values.b_other_name, runs: 0, sixes: 0, fours: 0 });   
+       matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).set({name: values.b_onstrike_name, runs: 0, sixes: 0, fours: 0 });
+       matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).set({name: values.b_onstrike_name, runs: 0, sixes: 0, fours: 0 });
+       matchref.collection("2nd_innings_batsmen").doc(values.b_other_id).set({name: values.b_other_name, runs: 0 , sixes: 0, fours: 0 });
+       matchref.collection("active_batsmen_sec_i").doc(values.b_other_id).set({name: values.b_other_name, runs: 0, sixes: 0, fours: 0 });   
         }
 
     const SaveBowler = () => {
-        matchref.collection("1st_innings_bowlers").doc(values.bowler_id).get().then((doc)=>{
+        matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).get().then((doc)=>{
           if(doc.exists){
             bowler_runs= doc.data().runs_given;
             bowler_wickets= doc.data().wickets;
-            matchref.collection("active_bowlers").doc(values.bowler_id).set({name: values.bowler_name, runs_given: bowler_runs, wickets: bowler_wickets });
+            matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).set({name: values.bowler_name, runs_given: bowler_runs, wickets: bowler_wickets });
           }
           else{
             bowler_runs=0;
             bowler_wickets=0;
-            matchref.collection("1st_innings_bowlers").doc(values.bowler_id).set({name: values.bowler_name, runs_given: 0, wickets: 0 });
-            matchref.collection("active_bowlers").doc(values.bowler_id).set({name: values.bowler_name, runs_given: 0, wickets: 0 });
+            matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).set({name: values.bowler_name, runs_given: 0, wickets: 0 });
+            matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).set({name: values.bowler_name, runs_given: 0, wickets: 0 });
           }
 
         })
@@ -293,9 +271,9 @@ function CricScorer (props) {
         await setOv(current_over).then(console.log("in SetOv"));
         var runs = parseInt(e.target.value, 10);
         runs_per_over += runs;
-        total_runs_1st_innings += runs;
+        total_runs_2nd_innings += runs;
         extra_runs += runs ; 
-        matchref.update({runs_this_over: runs_per_over, total_runs_1st_innings: total_runs_1st_innings, innings_extras: extra_runs  });
+        matchref.update({runs_this_over: runs_per_over, total_runs_2nd_innings: total_runs_2nd_innings, second_innings_extras: extra_runs  });
         await setValues({...values}).then(console.log("values set in handlewide"));
       }
 
@@ -304,9 +282,9 @@ function CricScorer (props) {
       await setOv(current_over).then(console.log("in SetOv"));
       var runs = parseInt(e.target.value, 10);
       runs_per_over += runs;
-      total_runs_1st_innings += runs;
+      total_runs_2nd_innings += runs;
       extra_runs += runs ; 
-      matchref.update({runs_this_over: runs_per_over, total_runs_1st_innings: total_runs_1st_innings, innings_extras: extra_runs  });
+      matchref.update({runs_this_over: runs_per_over, total_runs_2nd_innings: total_runs_2nd_innings, second_innings_extras: extra_runs  });
       await setValues({...values}).then(console.log("values set in handlenoball"));
     }
 
@@ -416,7 +394,7 @@ function CricScorer (props) {
          </Popup>
     
           <button onClick= {nextOver}>Next Over</button>
-          <button onClick= {EndInnings}>End 1st Innings</button>
+          <button onClick= {EndInnings}>End Match</button>
           <br />
           <br />
          
@@ -445,4 +423,4 @@ function CricScorer (props) {
     )
 }
 
-export default CricScorer;
+export default CricSecondInnings;

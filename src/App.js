@@ -12,6 +12,7 @@ import ScoringPage from './components/ScoringPage';
 import CricScorer from './components/CricScorer';
 import Toss from './components/Toss';
 import GameScheduleForm from './components/GameScheduleForm';
+import CricSecondInnings from './components/CricSecondInnings';
 
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Route path="/showmatches/:eventname" component={Matches} />
             <Route path="/tosspage/:eventname/:matchname" component={Toss} />
             <Route path="/cricscorer/:eventname/:matchname/:team_A/:team_B/:tosswinteam/:choice" component={CricScorer} />
+            <Route path="/secondinnings/:eventname/:matchname/:battingteam/:fieldingteam" component={CricSecondInnings} />
             <Route exact path="/scoringpage" component={ScoringPage} />
            
         </div>
