@@ -13,6 +13,7 @@ import CricScorer from './components/CricScorer';
 import Toss from './components/Toss';
 import GameScheduleForm from './components/GameScheduleForm';
 import CricSecondInnings from './components/CricSecondInnings';
+import EndingPage from './components/EndingPage';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
             <Route path="/cricscorer/:eventname/:matchname/:team_A/:team_B/:tosswinteam/:choice" component={CricScorer} />
             <Route path="/secondinnings/:eventname/:matchname/:battingteam/:fieldingteam" component={CricSecondInnings} />
             <Route exact path="/scoringpage" component={ScoringPage} />
+            <Route exact path="/endingpage" component={EndingPage} />
            
         </div>
     

@@ -92,21 +92,7 @@ function CricScorer (props) {
       var idarray= [battingteamdata.Player_1_id,battingteamdata.Player_2_id,battingteamdata.Player_3_id,battingteamdata.Player_4_id,battingteamdata.Player_5_id];
       idarray.map((item, index)=>{
         return( console.log("item",item))
-      })
-      idarray.forEach((item, index)=>{
-        
-        firebaseDb.firestore().collection("cric_players").doc(item).get().then((doc)=>{
-         var pl_data= doc.data();
-         console.log("pldata",pl_data);
-         firebaseDb.firestore().collection("cric_players").doc(item).update({matches_played: pl_data.matches_played+1})
-         matchref.collection("1st_innings_batsmen").doc(item).get().then((newdoc)=>{
-           if(newdoc.exists){
-             var newdata= newdoc.data();
-            firebaseDb.firestore().collection("cric_players").doc(item).update({pl_runs: pl_data.pl_runs + newdata.runs, fours: pl_data.fours + newdata.fours, sixes : pl_data.sixes + newdata.sixes, innings_played: pl_data.innings_played +1});
-           }
-            })
-      })
-    })
+      })      
     confirmAlert({
       title: 'Confirm to submit',
       message: 'Are you sure you want to end this innings?',
@@ -117,7 +103,22 @@ function CricScorer (props) {
         },
         {
           label: 'Yes',
-          onClick: () => {history.push(`/secondinnings/${props.match.params.eventname}/${props.match.params.matchname}/${batting_team}/${fielding_team}`);}
+          onClick: () => {
+            idarray.forEach((item, index)=>{
+        
+              firebaseDb.firestore().collection("cric_players").doc(item).get().then((doc)=>{
+               var pl_data= doc.data();
+               console.log("pldata",pl_data);
+               firebaseDb.firestore().collection("cric_players").doc(item).update({matches_played: pl_data.matches_played+1})
+               matchref.collection("1st_innings_batsmen").doc(item).get().then((newdoc)=>{
+                 if(newdoc.exists){
+                   var newdata= newdoc.data();
+                  firebaseDb.firestore().collection("cric_players").doc(item).update({total_runs: pl_data.total_runs + newdata.runs, fours: pl_data.fours + newdata.fours, sixes : pl_data.sixes + newdata.sixes, innings_played: pl_data.innings_played +1});
+                 }
+                  })
+            })
+          })
+            history.push(`/secondinnings/${props.match.params.eventname}/${props.match.params.matchname}/${batting_team}/${fielding_team}`);}
         }
       ]
     });

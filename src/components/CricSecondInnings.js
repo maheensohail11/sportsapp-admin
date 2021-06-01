@@ -23,6 +23,7 @@ var current_overs=0.0;
 var bowler_runs=0;
 var bowler_wickets=0;
 var target;
+var remaining_runs;
 
 function useAsyncState(initialValue) {
 
@@ -54,6 +55,8 @@ function CricSecondInnings (props) {
     var [values, setValues]= useAsyncState(initialvalues); 
     var [Ov, setOv]= useAsyncState([]);
     const [open, setopen]= useState(false);
+    const [confirmation, setconfirmation]= useState(false);
+    var [mdata, setmdata]=useAsyncState({});
     var [outvalues, setoutvalues]= useState(initialoutvalues);
     var [battingteamdata, setbattingteamdata]= useState({});
     var [fieldingteamdata, setfieldingteamdata]= useState({});
@@ -62,46 +65,115 @@ function CricSecondInnings (props) {
     var batting_team= props.match.params.fieldingteam;
     var fielding_team= props.match.params.battingteam;
     
+    
     useEffect(()=>{
     firebaseDb.firestore().collection("teams").doc(batting_team).get().then((doc) => {
         setbattingteamdata( doc.data());
-       // console.log(battingteamdata);
-    })
+      })
     firebaseDb.firestore().collection("teams").doc(fielding_team).get().then((doc) => {
         setfieldingteamdata( doc.data());
     })
-    
-    //battingteamdata.Player_2_id,battingteamdata.Player_3_id,battingteamdata.Player_4_id,battingteamdata.Player_5_id );
-
-    
+    matchref.get().then(async(doc)=>{
+      target= doc.data().total_runs_1st_innings +1;
+      remaining_runs=target;
+      console.log("Target: ",target); 
+    })
     matchref.update({second_innings_batting_team: batting_team, total_runs_2nd_innings: 0, second_i_overs: 0.0, second_i_wickets: 0});
-    },[])
-
     
+  },[])
+
+  const SaveData =() =>{
+  var idarray= [battingteamdata.Player_1_id,battingteamdata.Player_2_id,battingteamdata.Player_3_id,battingteamdata.Player_4_id,battingteamdata.Player_5_id];
+  idarray.map((item, index)=>{
+    return( console.log("item",item))
+  })
+  idarray.forEach((item, index)=>{
+    
+    firebaseDb.firestore().collection("cric_players").doc(item).get().then((doc)=>{
+     var pl_data= doc.data();
+     console.log("pldata",pl_data);
+     firebaseDb.firestore().collection("cric_players").doc(item).update({matches_played: pl_data.matches_played+1})
+     matchref.collection("2nd_innings_batsmen").doc(item).get().then((newdoc)=>{
+       if(newdoc.exists){
+         var newdata= newdoc.data();
+         console.log("newdata, ", newdata);
+        firebaseDb.firestore().collection("cric_players").doc(item).update({total_runs: pl_data.total_runs + newdata.runs, fours: pl_data.fours + newdata.fours, sixes : pl_data.sixes + newdata.sixes, innings_played: pl_data.innings_played +1});
+       }
+        })
+  })
+  matchref.get().then((doc)=>{
+    firebaseDb.firestore().collection("events").doc(props.match.params.eventname).collection("past_matches").doc(props.match.params.matchname).set(doc.data());
+  })
+  matchref.collection('1st_innings_batsmen').get().then((snapshot)=>{
+    snapshot.forEach((olddoc)=>{
+      firebaseDb.firestore().collection("events").doc(props.match.params.eventname).collection("past_matches").doc(props.match.params.matchname).collection('1st_innings_batsmen').doc(olddoc.id).set(olddoc.data());
+    })
+  })
+  matchref.collection('2nd_innings_batsmen').get().then((snapshot)=>{
+    snapshot.forEach((olddoc)=>{
+      firebaseDb.firestore().collection("events").doc(props.match.params.eventname).collection("past_matches").doc(props.match.params.matchname).collection('2nd_innings_batsmen').doc(olddoc.id).set(olddoc.data());
+    })
+  })
+  matchref.collection('1st_innings_bowlers').get().then((snapshot)=>{
+    snapshot.forEach((olddoc)=>{
+      firebaseDb.firestore().collection("events").doc(props.match.params.eventname).collection("past_matches").doc(props.match.params.matchname).collection('1st_innings_bowlers').doc(olddoc.id).set(olddoc.data());
+    })
+  })
+  matchref.collection('2nd_innings_bowlers').get().then((snapshot)=>{
+    snapshot.forEach((olddoc)=>{
+      firebaseDb.firestore().collection("events").doc(props.match.params.eventname).collection("past_matches").doc(props.match.params.matchname).collection('2nd_innings_bowlers').doc(olddoc.id).set(olddoc.data());
+    })
+  })
+  
+})
+}
 
     const EndInnings = () =>{
-      var idarray= [battingteamdata.Player_1_id,battingteamdata.Player_2_id,battingteamdata.Player_3_id,battingteamdata.Player_4_id,battingteamdata.Player_5_id];
-      idarray.map((item, index)=>{
-        return( console.log("item",item))
-      })
-      idarray.forEach((item, index)=>{
-        
-        firebaseDb.firestore().collection("cric_players").doc(item).get().then((doc)=>{
-         var pl_data= doc.data();
-         console.log("pldata",pl_data);
-         firebaseDb.firestore().collection("cric_players").doc(item).update({matches_played: pl_data.matches_played+1})
-         matchref.collection("2nd_innings_batsmen").doc(item).get().then((newdoc)=>{
-           if(newdoc.exists){
-             var newdata= newdoc.data();
-            firebaseDb.firestore().collection("cric_players").doc(item).update({pl_runs: pl_data.pl_runs + newdata.runs, fours: pl_data.fours + newdata.fours, sixes : pl_data.sixes + newdata.sixes, innings_played: pl_data.innings_played +1});
-           }
-            })
-      })
-    })
+     confirmAlert({
+      title: 'Confirm to submit',
+      message: `Who won? Confirm Please.`,
+      buttons: [
+        {
+          label: `${batting_team}`,
+          onClick: () => {
+            SaveData();
+            matchref.update({winning_team: batting_team});
+            history.push(`/endingpage`);}
+        },
+        {
+          label: `${fielding_team}`,
+          onClick: () => {
+            SaveData();
+            matchref.update({winning_team: fielding_team});
+            history.push(`/endingpage`);}
+        }
+      ]
+    });  
     
    }
+
     const OnRuns= async e =>{
-      console.log(values);
+      remaining_runs -= parseInt(e.target.value, 10);
+      if(remaining_runs==0){
+        confirmAlert({
+          title: 'Confirm to submit',
+          message: `Looks like ${batting_team} won? Confirm Please.`,
+          buttons: [
+            {
+              label: 'Cancel',
+              onClick: () => {return null;}
+            },
+            {
+              label: 'Yes',
+              onClick: () => {
+                matchref.update({winning_team: batting_team});
+                SaveData();
+                history.push(`/endingpage`);}
+            }
+          ]
+        });
+      }
+      console.log("rem" , remaining_runs);
       if(((current_overs * 10)%10)==5)
       current_overs+=0.5;
       else current_overs+=0.1;
@@ -110,7 +182,7 @@ function CricSecondInnings (props) {
         onstrike_runs= onstrike_runs + parseInt(e.target.value, 10);
         if((parseInt(e.target.value, 10) == 1) || (parseInt(e.target.value, 10) == 3) || (parseInt(e.target.value, 10) == 5) ){
             matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
-            matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs});
+            matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
             var temp_id= values.b_onstrike_id;
             var temp_name= values.b_onstrike_name;
             var temp_runs= onstrike_runs; 
@@ -134,32 +206,32 @@ function CricSecondInnings (props) {
           await setValues({...values}).then(console.log("values set in onfour"));
           onstrike_fours= onstrike_fours + 1;
             matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs, fours: onstrike_fours});
-            matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs,  fours: onstrike_fours});
+            matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs,  fours: onstrike_fours});
         }
         else if(parseInt(e.target.value, 10)== 6){
           await setValues({...values}).then(console.log("values set in onsix"));
           onstrike_sixes= onstrike_sixes + 1;
           matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs, sixes: onstrike_sixes});
-          matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs,  sixes: onstrike_sixes});
+          matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs,  sixes: onstrike_sixes});
       }
         else{
           await setValues({...values}).then(console.log("values set in ontwo"));
             matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
-            matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).update({runs: onstrike_runs});
+            matchref.collection("active_batsmen").doc(values.b_onstrike_id).update({runs: onstrike_runs});
         }
         runs_per_over += parseInt(e.target.value, 10);
         bowler_runs += parseInt(e.target.value, 10);
         total_runs_2nd_innings += parseInt(e.target.value, 10);
-        matchref.update({runs_this_over: runs_per_over, total_runs_2nd_innings: total_runs_2nd_innings, second_i_overs: current_overs });
+        matchref.update({runs_this_over: runs_per_over, total_runs_2nd_innings: total_runs_2nd_innings, second_i_overs: current_overs, runs_remaining: remaining_runs });
         matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).update({runs_given: bowler_runs});
-        matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).update({runs_given: bowler_runs});
+        matchref.collection("active_bowlers").doc(values.bowler_id).update({runs_given: bowler_runs});
         console.log(current_over);
 
         //return current_over;
        }
 
     const nextOver= async () => {
-      matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).delete();
+      matchref.collection("active_bowlers").doc(values.bowler_id).delete();
         //player exchange
         var temp_id= values.b_onstrike_id;
         var temp_name= values.b_onstrike_name; 
@@ -193,10 +265,10 @@ function CricSecondInnings (props) {
     const handleOut= async () => {
       bowler_wickets += 1;
       matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).update({wickets: bowler_wickets});
-      matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).update({wickets: bowler_wickets});
+      matchref.collection("active_bowlers").doc(values.bowler_id).update({wickets: bowler_wickets});
       //alert("out values: " + outvalues.player_out_name + " values: " + values.b_onstrike_name);
        if(outvalues.player_out_name === values.b_onstrike_name){
-        matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).delete();
+        matchref.collection("active_batsmen").doc(values.b_onstrike_id).delete();
          
            await setValues({
                ...values,
@@ -208,7 +280,7 @@ function CricSecondInnings (props) {
            onstrike_sixes=0;
          }
        else{
-        matchref.collection("active_batsmen_sec_i").doc(values.b_other_id).delete();
+        matchref.collection("active_batsmen").doc(values.b_other_id).delete();
            await setValues({
                ...values,
                b_other_id: outvalues.new_player_id,
@@ -220,30 +292,31 @@ function CricSecondInnings (props) {
     }
       wickets += 1; 
            matchref.collection("2nd_innings_batsmen").doc(outvalues.new_player_id).set({name: outvalues.new_player_name, runs: 0, fours: 0, sixes: 0 });
-           matchref.collection("active_batsmen_sec_i").doc(outvalues.new_player_id).set({name: outvalues.new_player_name, runs: 0, fours: 0, sixes: 0 });
+           matchref.collection("active_batsmen").doc(outvalues.new_player_id).set({name: outvalues.new_player_name, runs: 0, fours: 0, sixes: 0 });
            matchref.update({second_i_wickets: wickets}); 
            console.log(JSON.stringify(values));
      }
 
      const SavePlayers = () => {
        matchref.collection("2nd_innings_batsmen").doc(values.b_onstrike_id).set({name: values.b_onstrike_name, runs: 0, sixes: 0, fours: 0 });
-       matchref.collection("active_batsmen_sec_i").doc(values.b_onstrike_id).set({name: values.b_onstrike_name, runs: 0, sixes: 0, fours: 0 });
+       matchref.collection("active_batsmen").doc(values.b_onstrike_id).set({name: values.b_onstrike_name, runs: 0, sixes: 0, fours: 0 });
        matchref.collection("2nd_innings_batsmen").doc(values.b_other_id).set({name: values.b_other_name, runs: 0 , sixes: 0, fours: 0 });
-       matchref.collection("active_batsmen_sec_i").doc(values.b_other_id).set({name: values.b_other_name, runs: 0, sixes: 0, fours: 0 });   
-        }
+       matchref.collection("active_batsmen").doc(values.b_other_id).set({name: values.b_other_name, runs: 0, sixes: 0, fours: 0 });   
+       
+      }
 
     const SaveBowler = () => {
         matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).get().then((doc)=>{
           if(doc.exists){
             bowler_runs= doc.data().runs_given;
             bowler_wickets= doc.data().wickets;
-            matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).set({name: values.bowler_name, runs_given: bowler_runs, wickets: bowler_wickets });
+            matchref.collection("active_bowlers").doc(values.bowler_id).set({name: values.bowler_name, runs_given: bowler_runs, wickets: bowler_wickets });
           }
           else{
             bowler_runs=0;
             bowler_wickets=0;
             matchref.collection("2nd_innings_bowlers").doc(values.bowler_id).set({name: values.bowler_name, runs_given: 0, wickets: 0 });
-            matchref.collection("active_bowlers_sec_i").doc(values.bowler_id).set({name: values.bowler_name, runs_given: 0, wickets: 0 });
+            matchref.collection("active_bowlers").doc(values.bowler_id).set({name: values.bowler_name, runs_given: 0, wickets: 0 });
           }
 
         })
@@ -392,6 +465,7 @@ function CricSecondInnings (props) {
                 </select>
                 <button type="primary" onClick={handleOut} > Save </button>
          </Popup>
+         
     
           <button onClick= {nextOver}>Next Over</button>
           <button onClick= {EndInnings}>End Match</button>
